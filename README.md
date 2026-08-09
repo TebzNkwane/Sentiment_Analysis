@@ -1,52 +1,21 @@
 # Social Media Sentiment Analysis — Project Report
 
 ## Overview
-This project analyses **real, user-generated social media text data** - actual customer messages, comments, and complaints collected across social platforms (Facebook, Twitter, Instagram, LinkedIn, TikTok, and YouTube) rather than simulated data. Because the data is real, it carries the characteristics typical of authentic social media content: informal language, spelling inconsistencies, emojis, mixed languages, missing values, competition and spam-like entries. The end goal is to build a machine learning pipeline capable of automatically classifying the sentiment (Positive, Negative, or Neutral) of new, unseen messages of this same real-world nature.
+This project analyses **real, user-generated social media text data** - actual customer messages, comments, and complaints collected across social platforms (Facebook, Twitter, Instagram, LinkedIn, TikTok, and YouTube) rather than simulated data. Because the data is real, it carries the characteristics typical of authentic social media content: informal language, spelling inconsistencies, emojis, mixed languages, missing values, competition and spam-like entries. The end goal is to build a machine learning pipeline capable of automatically classifying the sentiment (Positive, Negative, or Neutral) of new, unseen messages of the same real-world nature.
 
 ---
 
 ## Objectives
-Below are the objectives I wish to accomplish in my project: 
+Below are the objectives of the project:
 
-1. Understand the distribution of sentiment (Positive, Negative, Neutral, Uncategorized) across a social media message dataset spanning multiple social platforms.
+1. Understand the distribution of sentiment across a social media message dataset spanning multiple social platforms.
 2. Identify which platforms contribute most to each sentiment category.
 3. Prepare the dataset for machine learning by cleaning, balancing, and vectorizing message text.
 4. Train and compare multiple classical machine learning models to automatically predict sentiment from message text.
-5. Establish a baseline pipeline that can be applied to new, unlabeled messages going forward.
+5. Establish a baseline pipeline that can be applied to new, unlabelled messages going forward.
 
 ---
 
-## USE FOR INSIGHTS
-
-**Purpose of this section:** Document what the raw data looked like, so any cleaning or modeling decisions later can be traced back to a specific data characteristic.
-
-| Column | Description |
-|---|---|
-| `Conversation Stream` (later renamed `message`) | Raw text of the social media message/comment |
-| `Sender Profile Image Url` | Dropped — not relevant to sentiment |
-| `Created Time` (later renamed `date`) | Timestamp of when the message was posted |
-| `Permalink` | Dropped — not relevant to sentiment |
-| `snTypeColumn` (later renamed `channel`) | Social media platform the message originated from |
-| `Associated Cases` | Dropped — not relevant to sentiment |
-| `Sentiment` | Target label: Positive, Negative, Neutral, or Uncategorized |
-| `Mentions (SUM)` | Dropped — not relevant to sentiment |
-
-**Original dataset size:** 24,903 rows, 8 columns.
-
-**Missing data:** `Conversation Stream` had 1,636 missing (NaN) values overall. Missingness was checked *per sentiment group* to determine whether missing message text was concentrated in a particular category (relevant because `Uncategorized` rows plausibly lack message text as the reason they were never categorized in the first place).
-
-**Original sentiment distribution:**
-
-| Sentiment | Count |
-|---|---|
-| Neutral | 11,735 |
-| Positive | 7,592 |
-| Negative | 3,944 |
-| Uncategorized | 1,632 |
-
-**Platform (channel) distribution:** Facebook (68.6%) and Twitter (27.5%) dominate the dataset, with Instagram, LinkedIn, TikTok, and YouTube together making up under 4% combined.
-
----
 
 ## Tools I Used
 
@@ -59,6 +28,61 @@ For my deep dive in dealing with unstractured text data, I harnessed the power o
 - Jupyter Notebook: The tool I used to run my Python scripts which let me easily include my notes and analysis.
 - Visual Studio Code: My go-to for executing my Python scripts.
 Git & GitHub: Essential for version control and sharing my Python code and analysis, ensuring collaboration and project tracking.
+
+---
+## The Analysis
+---
+### 1. Understanding the distribution of sentiment across a social media message dataset spanning multiple social platforms.
+---
+To fully create an ML pipeline, one has to understand message distribution across various social platforms. This is an important step as it will allow us to learn about different sentiment classes and their unique values, and how to later balance these classes to avoid model bias.
+
+#### Visualise Data
+```
+platform_counts = df_sent['snTypeColumn'].value_counts()
+platform_pct = (platform_counts / platform_counts.sum() * 100).reset_index()
+platform_pct.columns = ['Platform', 'percentage']
+platform_pct = platform_pct.sort_values('percentage', ascending=True)
+
+fig, ax = plt.subplots(1, 2, figsize=(12, 5))
+
+sns.barplot(data=platform_pct, x='percentage', y='Platform', ax=ax[0], hue='Platform', palette='dark:b_r', legend=False)
+sns.despine()
+ax[0].set_title('Message Source')
+ax[0].set_xlabel('% of messages')
+ax[0].set_ylabel('')
+ax[0].set_xlim(0, platform_pct['percentage'].max() * 1.15)
+ax[0].invert_yaxis()
+
+for n, v in enumerate(platform_pct['percentage']):
+    ax[0].text(v + 0.5, n, f'{v:.1f}%', va='center')
+
+df_sent['Sentiment'].value_counts().plot(kind='pie', startangle=90, autopct='%1.1f%%', ax=ax[1], ylabel='', title='Sentiment Proportion')
+
+fig.tight_layout()
+plt.show()
+```
+
+#### Results
+
+![message source & sentiment split](images\sentiment_split.png)
+*Bar graph represents the platforms with the highest volume of conversations. Pie chart gives us the breakdown of the customer sentiment.*
+
+### Insights: 
+
+Volume
+- Facebook dominates overwhelmingly, Twitter is a distant second at 27.5%. 
+- Together, Facebook and Twitter make up over 96% of all messages. 
+- Instagram (3.2%) is a minor contributor, while LinkedIn, TikTok, and YouTube are essentially negligible.
+Takeaway: Any analysis or strategy based on this dataset is really a Facebook/Twitter story — conclusions may not generalize well to platforms like TikTok or YouTube given their tiny sample sizes.
+
+Sentiment Proportion
+
+- Neutral sentiment is the largest segment at 50.4%, meaning half the conversation don't lean clearly positive or negative.
+- Positive sentiment (32.6%) nearly doubles negative sentiment (17.0%), suggesting the overall tone skews favorable when sentiment is expressed.
+
+### 2. Identify which platforms contribute most to each sentiment category.
+
+---
 
 ## Data Cleaning & Preparation
 
@@ -170,12 +194,36 @@ Three models were trained and compared:
 5. **Add language detection and routing** to properly handle non-English messages, either via translation, multilingual stopword lists, or a multilingual model.
 6. **Deduplicate near-identical/spam messages** prior to train/test splitting to avoid inflated performance from repeated content appearing in both sets.
 
+
+
+## USE FOR INSIGHTS
+
+**Purpose of this section:** Document what the raw data looked like, so any cleaning or modeling decisions later can be traced back to a specific data characteristic.
+
+| Column | Description |
+|---|---|
+| `Conversation Stream` (later renamed `message`) | Raw text of the social media message/comment |
+| `Sender Profile Image Url` | Dropped — not relevant to sentiment |
+| `Created Time` (later renamed `date`) | Timestamp of when the message was posted |
+| `Permalink` | Dropped — not relevant to sentiment |
+| `snTypeColumn` (later renamed `channel`) | Social media platform the message originated from |
+| `Associated Cases` | Dropped — not relevant to sentiment |
+| `Sentiment` | Target label: Positive, Negative, Neutral, or Uncategorized |
+| `Mentions (SUM)` | Dropped — not relevant to sentiment |
+
+**Original dataset size:** 24,903 rows, 8 columns.
+
+**Missing data:** `Conversation Stream` had 1,636 missing (NaN) values overall. Missingness was checked *per sentiment group* to determine whether missing message text was concentrated in a particular category (relevant because `Uncategorized` rows plausibly lack message text as the reason they were never categorized in the first place).
+
+**Original sentiment distribution:**
+
+| Sentiment | Count |
+|---|---|
+| Neutral | 11,735 |
+| Positive | 7,592 |
+| Negative | 3,944 |
+| Uncategorized | 1,632 |
+
+**Platform (channel) distribution:** Facebook (68.6%) and Twitter (27.5%) dominate the dataset, with Instagram, LinkedIn, TikTok, and YouTube together making up under 4% combined.
+
 ---
-
-## 10. Reproducibility Notes
-
-**Purpose of this section:** Ensure the pipeline can be reliably reproduced or extended by another analyst.
-
-- `random_state=42` was used consistently in the train/test split and model training steps for reproducibility. Note: it was intentionally **not** used in the undersampling step, meaning the exact rows sampled per class will vary between runs unless fixed explicitly.
-- Trained pipelines can be persisted using `joblib.dump()` / `joblib.load()` for reuse in future sessions or on new, unlabeled data.
-- To apply the trained model to new messages: apply the identical cleaning function used during training, then call `.predict()` directly on the cleaned text using the saved pipeline (which handles vectorization internally) — never re-fit the vectorizer on new data.
