@@ -64,6 +64,7 @@ plt.show()
 #### Results
 
 ![message source & sentiment split](images/sentiment_split.png)
+
 *Bar graph represents the platforms with the highest volume of conversations. Pie chart gives us the breakdown of the customer sentiment.*
 
 #### Insight:
@@ -85,6 +86,7 @@ Exploring message distribution further, we now look at the different sentiment c
 #### Results
 
 ![platform share of messages](images/2.png)
+
 *Figure: Platform share of messages by sentiment category - percentages reflect each platform's contribution within a given sentiment class.*
 
 #### Insights:
@@ -170,6 +172,7 @@ y_pred = pipeline.predict(X_test)
 #### Results
 
 ![logistic_classifier](images/logistic_reg.png)
+
 *Figure: Confusion matrix for the Logistic Regression sentiment classifier. Rows represent actual sentiment labels; columns represent predicted labels.*
 
 #### Insights:
